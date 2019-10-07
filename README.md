@@ -69,7 +69,7 @@ your own custom SSC parser plugin:
       above and other plugin configuration.
     * Update `src/main/resources/META-INF/services/com.fortify.plugin.spi.ParserPlugin`
       to point to your renamed parser plugin class.
-    * If you need any additional.other dependencies for your plugin,
+    * If you need any additional/other dependencies for your plugin,
       update `build.gradle`.
      
 * If you need to parse JSON data:
