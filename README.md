@@ -32,7 +32,7 @@ Compared to the original sample parser:
 * Run `gradle build` in the project directory
 * Install and enable the plugin jar in SSC; the plugin jar is available in the 
   `build/libs` directory after running `gradle build`
-* Upload the `src/main/resources/fixed-sample-scan.json` file as an
+* Upload the `src/test/resources/fixed-sample-scan.json` file as an
   artifact to an SSC application version, selecting the `3rd party results` 
   checkbox and `SAMPLE_ALTERNATIVE` as the scan type in the SSC artifact upload 
   dialog
