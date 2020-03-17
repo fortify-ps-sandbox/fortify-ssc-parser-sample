@@ -89,3 +89,8 @@ your own custom SSC parser plugin:
        based handlers or annotations to process the actual data.
 
       
+
+# Licensing
+
+See [LICENSE.TXT](LICENSE.TXT)
+
