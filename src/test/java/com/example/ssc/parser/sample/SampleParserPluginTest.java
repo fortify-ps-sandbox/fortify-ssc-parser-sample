@@ -44,29 +44,39 @@ import com.fortify.plugin.api.StaticVulnerabilityBuilder;
 import com.fortify.plugin.api.VulnerabilityHandler;
 
 class SampleParserPluginTest {
-	private final ScanData scanData = new ScanData() {
-		
-		@Override
-		public String getSessionId() {
-			return UUID.randomUUID().toString();
-		}
-		
-		@Override
-		public List<ScanEntry> getScanEntries() {
-			return null;
-		}
-		
-		@Override
-		public InputStream getInputStream(Predicate<String> matcher) throws IOException {
-			return ClassLoader.getSystemResourceAsStream("fixed-sample-scan.json");
-		}
-		
-		@Override
-		public InputStream getInputStream(ScanEntry scanEntry) throws IOException {
-			return ClassLoader.getSystemResourceAsStream("fixed-sample-scan.json");
-		}
-	};
-	
+
+	public static final String TESTFILE_JSON = "fixed-sample-scan.json";
+	public static final String TESTFILE_ZIP = "fixed-sample-scan.zip";
+
+	private ScanData getTestScanData(String filename) {
+		return new ScanData() {
+			@Override
+			public String getSessionId() {
+				return UUID.randomUUID().toString();
+			}
+
+			@Override
+			public List<ScanEntry> getScanEntries() {
+				return Arrays.asList(new ScanEntry() {
+					@Override
+					public String getEntryName() {
+						return filename;
+					}
+				});
+			}
+
+			@Override
+			public InputStream getInputStream(Predicate<String> matcher) throws IOException {
+				return ClassLoader.getSystemResourceAsStream(filename);
+			}
+
+			@Override
+			public InputStream getInputStream(ScanEntry scanEntry) throws IOException {
+				return ClassLoader.getSystemResourceAsStream(filename);
+			}
+		};
+	}
+
 	private final ScanBuilder scanBuilder = (ScanBuilder) Proxy.newProxyInstance(
 			SampleParserPluginTest.class.getClassLoader(), 
 			  new Class[] { ScanBuilder.class }, new InvocationHandler() {
@@ -97,15 +107,26 @@ class SampleParserPluginTest {
 	};
 	
 	@Test
-	void testParseScan() throws Exception {
-		new SampleParserPlugin().parseScan(scanData, scanBuilder);
+	void testParseScanJson() throws Exception {
+		new SampleParserPlugin().parseScan(getTestScanData(TESTFILE_JSON), scanBuilder);
 		// TODO Check actual output
 	}
 	
 	@Test
-	void testParseVulnerabilities() throws Exception {
-		new SampleParserPlugin().parseVulnerabilities(scanData, vulnerabilityHandler);
+	void testParseVulnerabilitiesJson() throws Exception {
+		new SampleParserPlugin().parseVulnerabilities(getTestScanData(TESTFILE_JSON), vulnerabilityHandler);
 		// TODO Check actual output
 	}
 
+	@Test
+	void testParseScanZip() throws Exception {
+		new SampleParserPlugin().parseScan(getTestScanData(TESTFILE_ZIP), scanBuilder);
+		// TODO Check actual output
+	}
+
+	@Test
+	void testParseVulnerabilitiesZip() throws Exception {
+		new SampleParserPlugin().parseVulnerabilities(getTestScanData(TESTFILE_ZIP), vulnerabilityHandler);
+		// TODO Check actual output
+	}
 }
