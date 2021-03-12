@@ -33,7 +33,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
+import com.fortify.plugin.api.ScanEntry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.slf4j.Logger;
@@ -163,13 +166,44 @@ public abstract class AbstractParser {
 	 * @throws IOException
 	 */
 	public final void parse(ScanData scanData) throws ScanParsingException, IOException {
-		try (   final InputStream content = scanData.getInputStream(x -> x.endsWith(".json"));
-				final JsonParser jsonParser = JSON_FACTORY.createParser(content)) {
+		int jsonFileCount = 0;  // keeping track of how many JSON files we found
+		for(ScanEntry scanEntry : scanData.getScanEntries()) {
+			try(final InputStream content = scanData.getInputStream(scanEntry)) {
+				if (scanEntry.getEntryName().endsWith(".json")) {
+					jsonFileCount += parseJsonStream(content);
+				} else if (scanEntry.getEntryName().endsWith(".zip")) {
+					jsonFileCount += parseZipStream(content);
+				}
+			}
+		}
+		if(jsonFileCount == 0) {
+			throw new ScanParsingException("no json file uploaded or found in archive");
+		}
+	}
+
+	private int parseJsonStream(InputStream content) throws ScanParsingException, IOException {
+		try(final JsonParser jsonParser = JSON_FACTORY.createParser(content)) {
 			jsonParser.nextToken();
 			assertStartObject(jsonParser);
 			parse(jsonParser, "/");
 			finish();
+			return 1;
 		}
+	}
+
+	private int parseZipStream(InputStream content) throws ScanParsingException, IOException {
+		int jsonFileCount = 0;  // keeping track of how many JSON files we found
+		try(final ZipInputStream zis = new ZipInputStream(content)) {
+			ZipEntry entry;
+			while ((entry = zis.getNextEntry()) != null) {
+				if(entry.getName().endsWith(".json")) {
+					jsonFileCount += parseJsonStream(zis);
+				} else if(entry.getName().endsWith(".zip")) {
+					jsonFileCount += parseZipStream(zis);
+				}
+			}
+		}
+		return jsonFileCount;
 	}
 
 	protected final void parse(final JsonParser jsonParser, String parentPath) throws ScanParsingException, IOException {
